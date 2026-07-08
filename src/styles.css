@@ -18,8 +18,7 @@ body {
     linear-gradient(135deg, #050607, #101418 55%, #050607);
 }
 
-button,
-input {
+button {
   font: inherit;
 }
 
@@ -29,7 +28,7 @@ input {
   margin: 0 auto;
   padding: 32px 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 20px;
   align-items: start;
 }
@@ -37,14 +36,27 @@ input {
 .terminal-card,
 .cheat-card {
   border: 1px solid rgba(128, 255, 180, 0.22);
-  background: rgba(4, 10, 8, 0.86);
+  background: rgba(4, 10, 8, 0.88);
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
 }
 
 .terminal-card {
   min-height: calc(100vh - 64px);
   display: grid;
-  grid-template-rows: auto minmax(420px, 1fr) auto;
+  grid-template-rows: auto minmax(320px, 1fr) auto auto;
+  outline: none;
+}
+
+.terminal-card:focus {
+  border-color: rgba(141, 255, 176, 0.68);
+}
+
+.terminal-card.mode-insert {
+  border-color: rgba(255, 220, 120, 0.45);
+}
+
+.terminal-card.mode-command {
+  border-color: rgba(120, 190, 255, 0.5);
 }
 
 .terminal-header {
@@ -76,7 +88,7 @@ p {
 .status-grid {
   display: grid;
   gap: 5px;
-  min-width: 160px;
+  min-width: 170px;
   color: #b9ffc8;
   text-align: right;
 }
@@ -97,30 +109,65 @@ p {
   color: #f6ff9e;
 }
 
-.command-row {
+.vim-buffer {
+  margin: 0 20px 16px;
+  border: 1px solid rgba(141, 255, 176, 0.24);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.buffer-title {
+  padding: 8px 12px;
+  color: #f6ff9e;
+  border-bottom: 1px solid rgba(141, 255, 176, 0.16);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.vim-buffer pre {
+  min-height: 120px;
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px 12px;
+  white-space: pre-wrap;
+  color: #e9ffe9;
+}
+
+.vim-status-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 12px;
+  color: #061008;
+  background: #8dffb0;
+}
+
+.mode-insert .vim-status-line {
+  background: #f6ff9e;
+}
+
+.mode-command .vim-status-line {
+  background: #8ecbff;
+}
+
+.control-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  gap: 10px;
-  padding: 16px 20px;
-  border-top: 1px solid rgba(128, 255, 180, 0.18);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 0 20px 18px;
   align-items: center;
 }
 
-.prompt {
-  color: #8dffb0;
-}
-
-input {
-  width: 100%;
-  color: #e9ffe9;
+.panic-meter {
+  height: 12px;
+  border: 1px solid rgba(255, 120, 120, 0.35);
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(141, 255, 176, 0.28);
-  padding: 10px 12px;
-  outline: none;
+  overflow: hidden;
 }
 
-input:focus {
-  border-color: rgba(141, 255, 176, 0.78);
+.panic-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(141, 255, 176, 0.55), rgba(255, 240, 120, 0.75), rgba(255, 84, 84, 0.9));
+  transition: width 120ms ease-out;
 }
 
 button {
@@ -161,6 +208,12 @@ dt {
 dd {
   margin: 0;
   color: #a9cdb1;
+}
+
+.hint {
+  margin-top: 18px;
+  line-height: 1.45;
+  color: #c5d2c8;
 }
 
 @media (max-width: 820px) {
