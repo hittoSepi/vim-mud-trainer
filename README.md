@@ -6,47 +6,76 @@ Learn Vim survival commands by escaping a cursed MUD-style text dungeon. The poi
 
 ## Concept
 
-`vim-mud-trainer` teaches terminal/editor survival through small text-adventure rooms:
+`vim-mud-trainer` teaches terminal/editor survival through **Parser Clash**: the player must learn which parser is currently listening.
 
-- understand modes: normal, insert, command
-- enter insert mode with `i`
-- leave insert mode with `Esc`
-- save with `:w`
-- quit with `:q`
-- flee with `:q!`
-- save and quit with `:wq`
-- delete line with `dd`
-- undo with `u`
-- search with `/word`, `n`, and `N`
+The game has two layers:
 
-## MVP
+- MUD world: room descriptions, NPC tells, goblin pressure, panic flavor
+- Vim buffer trap: normal / insert / command modes, command buffer, text buffer
 
-The first version is a Vite + React web trainer:
+The trainer does not emulate full Vim. It tracks only survival-level keydown events.
+
+## Current MVP
+
+The current version is a Vite + React keydown trainer:
 
 - terminal-looking UI
-- command input
-- room/lesson engine
-- lesson state machine
-- fake MUD tells and NPC flavor
-- XP and achievements later, because apparently even Vim needs loot now
+- focusable terminal panel
+- keydown-driven Vim state machine
+- mode state: `NORMAL`, `INSERT`, `COMMAND`
+- panic meter for wrong-parser input
+- text buffer for insert mode
+- command buffer for `:` commands
+- XP and room progression
 
-## Planned areas
+## Survival keys
 
 ```text
-Newbie Pond:
-  i, Esc, :q!
+i       enter insert mode
+Escape  leave insert mode
+:       enter command mode
+:w      save
+:q!     quit without saving
+:wq     save and quit
+:qa!    quit all by force
+dd      delete current line
+u       undo
+```
 
-Insert Swamp:
-  text input, mode awareness
+## Current rooms
 
-Goblin Line Cave:
-  dd, u
+```text
+The Wrong Parser Inn:
+  escape with :q!
 
-Search Forest:
-  /word, n, N
+The Gate of Insert:
+  enter insert mode with i
 
-Git Commit Abyss:
-  write message, :wq, survive shame
+The Swamp of Accidental Text:
+  leave insert mode with Escape
+
+The Goblin Line Cave:
+  delete line with dd
+
+The Regret Chamber:
+  undo with u
+
+The Save Shrine:
+  save with :w
+
+The Exit Portal:
+  save and quit with :wq
+
+The Ghost of :qa!:
+  quit all by force with :qa!
+```
+
+## Design notes
+
+See:
+
+```text
+docs/design.md
 ```
 
 ## Development
@@ -55,6 +84,8 @@ Git Commit Abyss:
 npm install
 npm run dev
 ```
+
+Click the terminal panel before using keys. Browsers insist on focus because even fake Vim dungeons must obey paperwork.
 
 ## Build
 
