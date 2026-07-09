@@ -1,6 +1,8 @@
 import { useEffect, useReducer, useRef } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { createInitialMachineState, vimMachineReducer } from './engine/vimMachine';
+import { roomOrder, rooms } from './engine/rooms';
+import type { RoomId } from './engine/rooms';
 
 function isPrintableKey(key: string): boolean {
   return key.length === 1;
@@ -8,6 +10,31 @@ function isPrintableKey(key: string): boolean {
 
 function shouldCaptureKey(key: string): boolean {
   return isPrintableKey(key) || ['Escape', 'Enter', 'Backspace'].includes(key);
+}
+
+function mapMarker(roomId: RoomId, currentRoomId: RoomId, completedRoomIds: RoomId[]): string {
+  if (roomId === currentRoomId) {
+    return '[@]';
+  }
+
+  if (completedRoomIds.includes(roomId)) {
+    return '[x]';
+  }
+
+  return '[ ]';
+}
+
+function renderAsciiMap(currentRoomId: RoomId, completedRoomIds: RoomId[]): string[] {
+  const markers = roomOrder.map((roomId) => mapMarker(roomId, currentRoomId, completedRoomIds));
+  const labels = roomOrder.map((roomId) => rooms[roomId].title);
+  const currentLabel = rooms[currentRoomId].title;
+
+  return [
+    'MUD MAP',
+    markers.join('--'),
+    labels.map((label, index) => `${markers[index]} ${label}`).join('\n'),
+    `You are here: ${currentLabel}`,
+  ];
 }
 
 export function App() {
@@ -45,6 +72,8 @@ export function App() {
       ? commandPreview || ':'
       : '-- NORMAL --';
   const terminalStyle = { '--panic': panicLevel / 100 } as CSSProperties;
+  const shouldShowHelpPrompt = state.panic >= 56 || state.phase === 'failed';
+  const asciiMap = renderAsciiMap(state.roomId, state.completedRoomIds);
 
   return (
     <main className="screen-shell">
@@ -62,6 +91,17 @@ export function App() {
               {line || '\u00A0'}
             </div>
           ))}
+
+          {shouldShowHelpPrompt && (
+            <>
+              <div className="line spacer" aria-hidden="true">&nbsp;</div>
+              <div className="line warning">The dungeon notices the flailing. Press ? for emergency help.</div>
+            </>
+          )}
+
+          <div className="line spacer" aria-hidden="true">&nbsp;</div>
+          <div className="line dim">--- WORLD MAP -------------------------------------------------------</div>
+          <pre className="map-text">{asciiMap.join('\n')}</pre>
 
           <div className="line spacer" aria-hidden="true">&nbsp;</div>
           <div className="line dim">--- VIM BUFFER TRAP ------------------------------------------------</div>
