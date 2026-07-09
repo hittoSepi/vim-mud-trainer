@@ -15,9 +15,54 @@ The game should teach **Vim survival**, not expert modal editing. The core pain 
 
 This is the **Parser Clash**.
 
+## Visual direction
+
+The game should feel like a retro terminal / old computer panic screen, not a modern web app.
+
+Mockup spirit:
+
+```text
+LOAD 0,9
+PRESS PLAY ON TAPE.
+Loading VIM MUD TRAINER...
+
+>
+```
+
+The tape-loader joke is only a mood reference. The game should not become a tape emulator, because apparently one cursed emulator is enough.
+
+Hard UI rule:
+
+```text
+NO EXTERNAL UI.
+JUST BLANK SCREEN.
+NO MOUSE.
+NO FANCY GRAPHICS.
+JUST TEXT AND PANIC.
+```
+
+There should be no visible app chrome around the game: no sidebar, no card UI, no toolbar, no button farm, no polite dashboard furniture. The player should see a black terminal-like screen with green text and a small status/prompt area.
+
+Panic should be visualized through the screen itself, not through a friendly progress widget. When the player panics, the screen border opacity increases. As panic rises, the border should pulse more intensely and the screen may gain red tint, noise, or hostile terminal texture.
+
+## MVP
+
+Prototype interface showing a MUD-style room view combined with a Vim editor overlay displaying mode and command areas.
+
+The parsers/layers to teach:
+
+- shell
+- MUD command parser
+- editor normal mode
+- editor insert mode
+- editor command line
+- git commit editor
+
+This is the **Parser Clash**.
+
 ## UI layers
 
-The UI should present two layers:
+The UI should present two conceptual layers, but visually they should live inside one ascetic terminal screen.
 
 1. **MUD world**
    - room descriptions
@@ -25,13 +70,14 @@ The UI should present two layers:
    - enemy pressure
    - lore and jokes
    - panic consequences
+   - room progression
 
 2. **Vim buffer / editor trap**
-   - visible modal editor area
-   - current mode indicator
+   - mode awareness
    - command buffer
    - text buffer
-   - panic meter
+   - minimal status/prompt line
+   - panic shown as screen border/tint/text pressure
 
 The player should feel that they are inside a MUD room, but temporarily trapped inside an editor-like interface.
 
@@ -93,7 +139,7 @@ The command buffer accepts:
 - `q`
 - `q!`
 - `wq`
-- later: `qa!`
+- `qa!`
 
 The command executes on Enter. Escape cancels command mode.
 
@@ -101,12 +147,15 @@ The command executes on Enter. Escape cancels command mode.
 
 Wrong parser inputs increase panic.
 
+Panic should affect the screen, not appear as a friendly web progress bar.
+
 Potential effects:
 
 - mild: flavor text warnings
 - medium: NPC mocks player
-- high: screen noise / red tint / text wall approaches
-- max: lesson reset or comic failure state
+- high: red border opacity increases and begins pulsing harder
+- critical: screen noise / red tint / text wall approaches
+- max: panic failure state with Escape-based recovery
 
 The panic meter should reinforce that wrong mode awareness is the danger.
 
@@ -116,11 +165,12 @@ Required first survival controls:
 
 ```text
 i       enter insert mode
-Escape  leave insert mode
+Escape  leave insert mode / recover panic failure
 :       enter command mode
 :w      save
 :q!     quit without saving
 :wq     save and quit
+:qa!    quit all by force
 dd      delete current line
 u       undo
 ```
@@ -184,17 +234,19 @@ In real Vim these can do different things. The game does not need full behavior,
 
 ## Implementation direction
 
-Replace the current form-submit command model with a keydown-driven reducer.
+Use a keydown-driven reducer.
 
-Suggested files:
+Current important files:
 
 ```text
 src/engine/vimMachine.ts
-src/engine/vimReducer.ts
 src/engine/rooms.ts
+src/App.tsx
+src/styles.css
+docs/design.md
 ```
 
-React should listen to `keydown` while the terminal panel is focused.
+React should listen to `keydown` on the terminal screen. Avoid ordinary form inputs and avoid mouse-first UI.
 
 Lesson data should describe:
 
@@ -215,5 +267,8 @@ Do not implement:
 - plugins
 - syntax highlighting
 - actual terminal emulation
+- modern dashboard chrome
+- mouse-first controls
+- decorative UI panels
 
 The game is about survival and mode awareness. If it becomes a Vim clone, the dungeon has won.
