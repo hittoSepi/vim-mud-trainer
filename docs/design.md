@@ -6,11 +6,69 @@
 
 The game should teach **Vim survival**, not expert modal editing. The core pain point is not `hjkl`. The core pain point is panic caused by the user not knowing which parser is currently listening:
 
-- shell
+
+
+<div style="margin-top: 25px; margin-bottom: 25px; padding: 50px; background-color: black; color:darkgreen; font-weight: bold; display: inline-block; font-family: monospace; font-size: 1.2em; line-height: 1.5em;border:rgba(255,0,0,0) solid 10px">MOCKUP UI:
+<p>
+<span style="margin-top: 25px; margin-bottom: 25px; padding: 40px; background-color: black; color:darkgreen; font-weight: bold; display: inline-block; font-family: monospace; font-size: 1.2em; line-height: 1.5em;">
+   LOAD 0,9 <br/>
+   PRESS PLAY ON TAPE. <br/>
+   Loading VIM MUD TRAINER... <br/>
+   <br/>
+   &gt;
+</span>
+<br/>
+<br/>
+<small>Note: the above is a joke. The game should not be a tape emulator.<br/>
+But it should feel like a retro computer game, with a terminal-like interface and a sense of urgency.<br/>
+No UI chrome, no mouse, no fancy graphics. Just text and panic.
+Panic needs to show somehow, maybe screen tint, text wall, or NPC mockery. The player should feel trapped in a MUD room while also trapped in a Vim editor.<br/>
+</small>
+
+NO EXTERNAL UI JUST BLANK SCREEN. NO MOUSE. NO FANCY GRAPHICS. JUST TEXT AND PANIC.
+</p>
+</div>
+
+
+
+
+
+<h3 style="color:rgb(200,20,20) ">When Player panics screen borders opacity increases </h3>
+<h3 style="color:rgb(200,20,20) ">When the player panics, the screen border opacity increases and the borders pulse more intensely the more panicked they are.</h3>
+
+<div style="margin-top: 25px; margin-bottom: 25px; padding: 50px; background-color: black; color:darkgreen; font-weight: bold; display: inline-block; font-family: monospace; font-size: 1.2em; line-height: 1.5em;border:rgba(255,0,0,0.15) solid 10px">MOCKUP UI:
+<p>
+<span style="margin-top: 25px; margin-bottom: 25px; padding: 40px; background-color: black; color:darkgreen; font-weight: bold; display: inline-block; font-family: monospace; font-size: 1.2em; line-height: 1.5em;">
+   LOAD 0,9 <br/>
+   PRESS PLAY ON TAPE. <br/>
+   Loading VIM MUD TRAINER... <br/>
+   <br/>
+   &gt;
+</span>
+<br/>
+<br/>
+<small>Note: the above is a joke. The game should not be a tape emulator.<br/>
+But it should feel like a retro computer game, with a terminal-like interface and a sense of urgency.<br/>
+No UI chrome, no mouse, no fancy graphics. Just text and panic.
+Panic needs to show somehow, maybe screen tint, text wall, or NPC mockery. The player should feel trapped in a MUD room while also trapped in a Vim editor.<br/>
+</small>
+
+NO EXTERNAL UI JUST BLANK SCREEN. NO MOUSE. NO FANCY GRAPHICS. JUST TEXT AND PANIC.
+</p>
+</div>
+
+
+
+## MVP
+
+Prototype interface showing a MUD-style room view combined with a Vim editor overlay displaying mode and command areas
+
+- shell 
 - MUD command parser
 - editor normal mode
 - editor insert mode
 - editor command line
+
 - git commit editor
 
 This is the **Parser Clash**.
@@ -25,13 +83,26 @@ The UI should present two layers:
    - enemy pressure
    - lore and jokes
    - panic consequences
+   - room progression
 
-2. **Vim buffer / editor trap**
-   - visible modal editor area
-   - current mode indicator
+2.
+
+
+1. **MUD world**
+   - room descriptions
+   - NPC tells
+   - enemy pressure
+   - lore and jokes
+   - panic consequences
+   - room progression
+- 
+
+2. **Vim Editor**
+   - mode awareness
    - command buffer
    - text buffer
-   - panic meter
+   - panic meter (visualized red tint, text wall, NPC mockery) does this belongs to 1.? 
+
 
 The player should feel that they are inside a MUD room, but temporarily trapped inside an editor-like interface.
 
