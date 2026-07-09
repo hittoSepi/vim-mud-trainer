@@ -102,17 +102,26 @@ body {
   color: #073b12;
 }
 
+.warning {
+  color: #5f2b1d;
+}
+
 .spacer {
   margin-top: 1.45em;
 }
 
-.buffer-text {
+.buffer-text,
+.map-text {
   margin: 0;
   padding: 0;
   min-height: 1.45em;
   color: #0d6a22;
   font: inherit;
   white-space: pre-wrap;
+}
+
+.map-text {
+  color: #0a4c18;
 }
 
 .terminal-status {
