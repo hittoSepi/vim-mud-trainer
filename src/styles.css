@@ -1,273 +1,151 @@
 :root {
   color-scheme: dark;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-  background: #080b0d;
-  color: #d8f8df;
+  background: #000;
+  color: #0b4f1a;
 }
 
 * {
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
+html,
+body,
+#root {
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(64, 255, 160, 0.12), transparent 32rem),
-    linear-gradient(135deg, #050607, #101418 55%, #050607);
-}
-
-button {
-  font: inherit;
-}
-
-.shell {
-  width: min(1180px, calc(100vw - 32px));
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 32px 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 20px;
-  align-items: start;
-}
-
-.terminal-card,
-.cheat-card {
-  border: 1px solid rgba(128, 255, 180, 0.22);
-  background: rgba(4, 10, 8, 0.88);
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
-}
-
-.terminal-card {
-  min-height: calc(100vh - 64px);
-  display: grid;
-  grid-template-rows: auto minmax(320px, 1fr) auto auto;
-  outline: none;
-}
-
-.terminal-card:focus {
-  border-color: rgba(141, 255, 176, 0.68);
-}
-
-.terminal-card.mode-insert {
-  border-color: rgba(255, 220, 120, 0.45);
-}
-
-.terminal-card.mode-command {
-  border-color: rgba(120, 190, 255, 0.5);
-}
-
-.terminal-card.phase-failed {
-  border-color: rgba(255, 84, 84, 0.78);
-  box-shadow: 0 0 0 1px rgba(255, 84, 84, 0.22), 0 20px 90px rgba(255, 0, 0, 0.18);
-}
-
-.terminal-card.phase-failed .terminal-log {
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 84, 84, 0.05),
-      rgba(255, 84, 84, 0.05) 2px,
-      transparent 2px,
-      transparent 8px
-    );
-}
-
-.terminal-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
-  border-bottom: 1px solid rgba(128, 255, 180, 0.18);
-}
-
-h1,
-h2,
-p {
   margin: 0;
+  background: #000;
 }
 
-h1 {
-  color: #8dffb0;
-  font-size: 1.35rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-p {
-  margin-top: 6px;
-  color: #82a98d;
-}
-
-.status-grid {
-  display: grid;
-  gap: 5px;
-  min-width: 170px;
-  color: #b9ffc8;
-  text-align: right;
-}
-
-.terminal-log {
-  padding: 20px;
-  overflow: auto;
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
-
-.log-line {
-  min-height: 1.55em;
-}
-
-.room-title {
-  margin-top: 10px;
-  color: #f6ff9e;
-}
-
-.vim-buffer {
-  margin: 0 20px 16px;
-  border: 1px solid rgba(141, 255, 176, 0.24);
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.buffer-title {
-  padding: 8px 12px;
-  color: #f6ff9e;
-  border-bottom: 1px solid rgba(141, 255, 176, 0.16);
-  background: rgba(0, 0, 0, 0.24);
-}
-
-.vim-buffer pre {
-  min-height: 120px;
-  max-height: 220px;
-  overflow: auto;
-  margin: 0;
-  padding: 14px 12px;
-  white-space: pre-wrap;
-  color: #e9ffe9;
-}
-
-.vim-status-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 7px 12px;
-  color: #061008;
-  background: #8dffb0;
-}
-
-.mode-insert .vim-status-line {
-  background: #f6ff9e;
-}
-
-.mode-command .vim-status-line {
-  background: #8ecbff;
-}
-
-.control-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  padding: 0 20px 18px;
-  align-items: center;
-}
-
-.panic-meter {
-  height: 12px;
-  border: 1px solid rgba(255, 120, 120, 0.35);
-  background: rgba(255, 255, 255, 0.06);
+body {
   overflow: hidden;
 }
 
-.panic-fill {
-  height: 100%;
-  background: linear-gradient(90deg, rgba(141, 255, 176, 0.55), rgba(255, 240, 120, 0.75), rgba(255, 84, 84, 0.9));
-  transition: width 120ms ease-out;
+.screen-shell {
+  min-height: 100vh;
+  background: #000;
 }
 
-button {
-  color: #dfffe7;
-  background: rgba(141, 255, 176, 0.12);
-  border: 1px solid rgba(141, 255, 176, 0.32);
-  padding: 10px 12px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: rgba(141, 255, 176, 0.2);
-}
-
-.cheat-card {
-  padding: 18px;
-  position: sticky;
-  top: 24px;
-}
-
-.cheat-card h2 {
-  color: #f6ff9e;
-  font-size: 1rem;
-  margin-bottom: 14px;
-}
-
-dl {
+.terminal-screen {
+  --panic: 0;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  padding: clamp(18px, 4vw, 56px);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 9px 12px;
-  margin: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  color: #0b5f1d;
+  background: #000;
+  outline: none;
+  text-shadow: 0 0 8px rgba(0, 110, 30, 0.38);
 }
 
-dt {
-  color: #8dffb0;
+.terminal-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 10px solid rgba(210, 0, 0, calc(var(--panic) * 0.58));
+  box-shadow:
+    inset 0 0 calc(8px + (var(--panic) * 42px)) rgba(210, 0, 0, calc(var(--panic) * 0.5)),
+    0 0 calc(4px + (var(--panic) * 26px)) rgba(210, 0, 0, calc(var(--panic) * 0.45));
+  animation: panic-pulse calc(1.6s - (var(--panic) * 0.9s)) infinite ease-in-out;
 }
 
-dd {
-  margin: 0;
-  color: #a9cdb1;
+.terminal-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: calc(0.08 + (var(--panic) * 0.22));
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 60, 18, 0.24),
+    rgba(0, 60, 18, 0.24) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  mix-blend-mode: screen;
 }
 
-.hint {
-  margin-top: 18px;
+.terminal-screen.phase-failed {
+  color: #184f16;
+  text-shadow: 0 0 10px rgba(180, 0, 0, 0.42);
+}
+
+.terminal-output {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  padding-right: 1ch;
   line-height: 1.45;
-  color: #c5d2c8;
+  white-space: pre-wrap;
+  scrollbar-width: none;
 }
 
-.lesson-title {
-  margin-top: 24px;
+.terminal-output::-webkit-scrollbar {
+  display: none;
 }
 
-.lesson-list {
-  display: grid;
-  gap: 8px;
+.line {
+  min-height: 1.45em;
 }
 
-.lesson-button {
-  width: 100%;
-  padding: 8px 10px;
-  text-align: left;
-  color: #a9cdb1;
-  background: rgba(255, 255, 255, 0.035);
+.room-title {
+  margin-top: 1.45em;
+  color: #146f26;
 }
 
-.lesson-button.active {
-  color: #061008;
-  background: #8dffb0;
+.dim {
+  color: #073b12;
 }
 
-@media (max-width: 820px) {
-  .shell {
-    grid-template-columns: 1fr;
+.spacer {
+  margin-top: 1.45em;
+}
+
+.buffer-text {
+  margin: 0;
+  padding: 0;
+  min-height: 1.45em;
+  color: #0d6a22;
+  font: inherit;
+  white-space: pre-wrap;
+}
+
+.terminal-status {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 2ch;
+  padding-top: 1.45em;
+  color: #0b4f1a;
+}
+
+.mode-insert .terminal-status {
+  color: #556b16;
+}
+
+.mode-command .terminal-status {
+  color: #14506b;
+}
+
+@keyframes panic-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
   }
 
-  .terminal-header {
-    flex-direction: column;
+  50% {
+    opacity: 1;
   }
+}
 
-  .status-grid {
-    text-align: left;
-  }
-
-  .cheat-card {
-    position: static;
+@media (max-width: 640px) {
+  .terminal-status {
+    display: block;
   }
 }
