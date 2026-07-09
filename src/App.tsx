@@ -1,5 +1,7 @@
 import { KeyboardEvent, useEffect, useReducer, useRef } from 'react';
 import { createInitialMachineState, vimMachineReducer } from './engine/vimMachine';
+import { roomOrder, rooms } from './engine/rooms';
+import type { RoomId } from './engine/rooms';
 
 function isPrintableKey(key: string): boolean {
   return key.length === 1;
@@ -28,7 +30,17 @@ export function App() {
     }
 
     event.preventDefault();
-    dispatch({ type: 'key', key: event.key, printable: isPrintableKey(event.key) });
+    dispatch({
+      type: 'key',
+      key: event.key,
+      printable: isPrintableKey(event.key),
+      capsLock: event.getModifierState('CapsLock'),
+    });
+  }
+
+  function startRoom(roomId: RoomId) {
+    dispatch({ type: 'start-room', roomId });
+    panelRef.current?.focus();
   }
 
   const commandPreview = state.mode === 'command' ? `:${state.commandBuffer}` : '';
@@ -37,7 +49,7 @@ export function App() {
   return (
     <main className="shell">
       <section
-        className={`terminal-card mode-${state.mode}`}
+        className={`terminal-card mode-${state.mode} phase-${state.phase}`}
         tabIndex={0}
         ref={panelRef}
         onKeyDown={handleKeyDown}
@@ -50,6 +62,7 @@ export function App() {
           </div>
           <div className="status-grid">
             <span>mode: {state.mode.toUpperCase()}</span>
+            <span>phase: {state.phase}</span>
             <span>xp: {state.xp}</span>
             <span>cleared: {state.completedRoomIds.length}</span>
             <span>panic: {panicLevel}%</span>
@@ -85,7 +98,7 @@ export function App() {
         <h2>Survival keys</h2>
         <dl>
           <dt>i</dt><dd>enter insert mode</dd>
-          <dt>Esc</dt><dd>leave insert mode</dd>
+          <dt>Esc</dt><dd>leave insert mode / recover panic</dd>
           <dt>:</dt><dd>open command mode</dd>
           <dt>:w</dt><dd>save</dd>
           <dt>:q!</dt><dd>quit without saving</dd>
@@ -95,6 +108,20 @@ export function App() {
           <dt>u</dt><dd>undo</dd>
         </dl>
         <p className="hint">Click the terminal panel, then use real keys. This is no longer a polite text box. Progress, allegedly.</p>
+
+        <h2 className="lesson-title">Lesson select</h2>
+        <div className="lesson-list" aria-label="lesson select">
+          {roomOrder.map((roomId) => (
+            <button
+              key={roomId}
+              type="button"
+              className={state.roomId === roomId ? 'lesson-button active' : 'lesson-button'}
+              onClick={() => startRoom(roomId)}
+            >
+              {rooms[roomId].title}
+            </button>
+          ))}
+        </div>
       </aside>
     </main>
   );
