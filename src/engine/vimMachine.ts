@@ -39,6 +39,36 @@ function nextRoomId(currentRoomId: RoomId): RoomId | null {
   return roomOrder[index + 1] ?? null;
 }
 
+function roomHint(roomId: RoomId): string {
+  const hints: Record<RoomId, string> = {
+    'wrong-parser-inn': 'Hint: you are in NORMAL mode. Press :, type q!, then press Enter.',
+    'insert-gate': 'Hint: press lowercase i. Not look, not quit, not a heartfelt apology.',
+    'escape-swamp': 'Hint: you are in INSERT mode. Press Escape to stop feeding text to the swamp.',
+    'goblin-line': 'Hint: press d twice: dd. One d only arms the delete operator, because suspense was apparently necessary.',
+    'regret-chamber': 'Hint: press lowercase u to undo. This is one of the few mercies granted by the dungeon.',
+    'caps-lock-curse': 'Hint: turn Caps Lock off and press lowercase u. The keyboard must stop shouting first.',
+    'save-shrine': 'Hint: press :, type w, then press Enter.',
+    'git-commit-abyss': 'Hint: press i, write a short commit message, press Escape, then use :wq.',
+    'exit-portal': 'Hint: press :, type wq, then press Enter.',
+    'ghost-of-qa': 'Hint: press :, type qa!, then press Enter. Burn the buffers from orbit.',
+  };
+
+  return hints[roomId];
+}
+
+function showEmergencyHelp(state: VimMachineState): VimMachineState {
+  return {
+    ...state,
+    lastKey: '?',
+    pendingOperator: null,
+    log: [
+      ...state.log,
+      '?> emergency help opens reluctantly.',
+      roomHint(state.roomId),
+    ],
+  };
+}
+
 function createRoomStartState(roomId: RoomId, completedRoomIds: RoomId[] = [], xp = 0): VimMachineState {
   const room = rooms[roomId];
   return {
@@ -125,7 +155,7 @@ function panicFailure(state: VimMachineState): VimMachineState {
       ...state.log,
       '',
       'PANIC FAILURE. The room fills with fake terminal output and one smug goblin helpfully types quit for you.',
-      'Press Escape to recover. The lesson remains. Mercy, unfortunately, has a UI now.',
+      'Press Escape to recover. Press ? for emergency help, because apparently even dungeons need support desks.',
     ],
   };
 }
@@ -138,6 +168,7 @@ function withPanic(state: VimMachineState, amount: number): VimMachineState {
 
 function wrongParser(state: VimMachineState, key: string, message?: string): VimMachineState {
   const panic = Math.min(100, state.panic + 8);
+  const helpMessage = panic >= 56 ? 'The terminal grudgingly admits: press ? for emergency help.' : '';
   const panicMessage = panic >= 80
     ? 'PANIC CRITICAL. The parser goblin starts chewing the keyboard cable.'
     : panic >= 50
@@ -154,6 +185,7 @@ function wrongParser(state: VimMachineState, key: string, message?: string): Vim
       `normal> ${key}`,
       message ?? panicFlavor(key),
       panicMessage,
+      ...(helpMessage ? [helpMessage] : []),
     ],
   };
 
@@ -168,7 +200,6 @@ function panicFlavor(key: string): string {
     score: 'The editor does not know your level. Rude, but accurate.',
     q: 'A lonely q appears in your soul. It is not :q!.',
     quit: 'You type quit. Vim users become stronger somewhere far away.',
-    '?': 'Help does not arrive. It rarely does.',
   };
 
   return known[key] ?? `The key ${JSON.stringify(key)} is not useful in this mode.`;
@@ -214,11 +245,15 @@ export function vimMachineReducer(
 }
 
 function handlePanicRecovery(state: VimMachineState, key: string): VimMachineState {
+  if (key === '?') {
+    return showEmergencyHelp(state);
+  }
+
   if (key !== 'Escape') {
     return {
       ...state,
       lastKey: key,
-      log: [...state.log, 'Panic has the keyboard. Press Escape. Yes, the actual key. Humanity may yet recover.'],
+      log: [...state.log, 'Panic has the keyboard. Press Escape. Press ? if you need the dungeon to explain itself slowly.'],
     };
   }
 
@@ -249,6 +284,10 @@ function applyCapsLockCurse(state: VimMachineState, key: string, capsLock: boole
 }
 
 function handleNormal(state: VimMachineState, key: string): VimMachineState {
+  if (key === '?') {
+    return showEmergencyHelp(state);
+  }
+
   if (key === 'Escape') {
     return {
       ...state,
