@@ -59,6 +59,22 @@ button {
   border-color: rgba(120, 190, 255, 0.5);
 }
 
+.terminal-card.phase-failed {
+  border-color: rgba(255, 84, 84, 0.78);
+  box-shadow: 0 0 0 1px rgba(255, 84, 84, 0.22), 0 20px 90px rgba(255, 0, 0, 0.18);
+}
+
+.terminal-card.phase-failed .terminal-log {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 84, 84, 0.05),
+      rgba(255, 84, 84, 0.05) 2px,
+      transparent 2px,
+      transparent 8px
+    );
+}
+
 .terminal-header {
   display: flex;
   justify-content: space-between;
@@ -214,6 +230,28 @@ dd {
   margin-top: 18px;
   line-height: 1.45;
   color: #c5d2c8;
+}
+
+.lesson-title {
+  margin-top: 24px;
+}
+
+.lesson-list {
+  display: grid;
+  gap: 8px;
+}
+
+.lesson-button {
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  color: #a9cdb1;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.lesson-button.active {
+  color: #061008;
+  background: #8dffb0;
 }
 
 @media (max-width: 820px) {
