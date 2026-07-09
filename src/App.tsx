@@ -1,5 +1,8 @@
-import { KeyboardEvent, useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { createInitialMachineState, vimMachineReducer } from './engine/vimMachine';
+import { roomOrder, rooms } from './engine/rooms';
+import type { RoomId } from './engine/rooms';
 
 function isPrintableKey(key: string): boolean {
   return key.length === 1;
@@ -9,17 +12,42 @@ function shouldCaptureKey(key: string): boolean {
   return isPrintableKey(key) || ['Escape', 'Enter', 'Backspace'].includes(key);
 }
 
+function mapMarker(roomId: RoomId, currentRoomId: RoomId, completedRoomIds: RoomId[]): string {
+  if (roomId === currentRoomId) {
+    return '[@]';
+  }
+
+  if (completedRoomIds.includes(roomId)) {
+    return '[x]';
+  }
+
+  return '[ ]';
+}
+
+function renderAsciiMap(currentRoomId: RoomId, completedRoomIds: RoomId[]): string[] {
+  const markers = roomOrder.map((roomId) => mapMarker(roomId, currentRoomId, completedRoomIds));
+  const labels = roomOrder.map((roomId) => rooms[roomId].title);
+  const currentLabel = rooms[currentRoomId].title;
+
+  return [
+    'MUD MAP',
+    markers.join('--'),
+    labels.map((label, index) => `${markers[index]} ${label}`).join('\n'),
+    `You are here: ${currentLabel}`,
+  ];
+}
+
 export function App() {
   const [state, dispatch] = useReducer(vimMachineReducer, undefined, createInitialMachineState);
   const logRef = useRef<HTMLDivElement | null>(null);
-  const panelRef = useRef<HTMLElement | null>(null);
+  const screenRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [state.log]);
+  }, [state.log, state.textBuffer, state.commandBuffer]);
 
   useEffect(() => {
-    panelRef.current?.focus();
+    screenRef.current?.focus();
   }, []);
 
   function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
@@ -28,74 +56,63 @@ export function App() {
     }
 
     event.preventDefault();
-    dispatch({ type: 'key', key: event.key, printable: isPrintableKey(event.key) });
+    dispatch({
+      type: 'key',
+      key: event.key,
+      printable: isPrintableKey(event.key),
+      capsLock: event.getModifierState('CapsLock'),
+    });
   }
 
-  const commandPreview = state.mode === 'command' ? `:${state.commandBuffer}` : '';
   const panicLevel = Math.min(100, state.panic);
+  const commandPreview = state.mode === 'command' ? `:${state.commandBuffer}` : '';
+  const statusLine = state.mode === 'insert'
+    ? '-- INSERT --'
+    : state.mode === 'command'
+      ? commandPreview || ':'
+      : '-- NORMAL --';
+  const terminalStyle = { '--panic': panicLevel / 100 } as CSSProperties;
+  const shouldShowHelpPrompt = state.panic >= 56 || state.phase === 'failed';
+  const asciiMap = renderAsciiMap(state.roomId, state.completedRoomIds);
 
   return (
-    <main className="shell">
+    <main className="screen-shell">
       <section
-        className={`terminal-card mode-${state.mode}`}
+        className={`terminal-screen mode-${state.mode} phase-${state.phase}`}
+        style={terminalStyle}
         tabIndex={0}
-        ref={panelRef}
+        ref={screenRef}
         onKeyDown={handleKeyDown}
         aria-label="vim mud trainer terminal"
       >
-        <header className="terminal-header">
-          <div>
-            <h1>vim-mud-trainer</h1>
-            <p>MUD-based Vim survival game and trainer</p>
-          </div>
-          <div className="status-grid">
-            <span>mode: {state.mode.toUpperCase()}</span>
-            <span>xp: {state.xp}</span>
-            <span>cleared: {state.completedRoomIds.length}</span>
-            <span>panic: {panicLevel}%</span>
-          </div>
-        </header>
-
-        <div className="terminal-log" ref={logRef} aria-live="polite">
+        <div className="terminal-output" ref={logRef} aria-live="polite">
           {state.log.map((line, index) => (
-            <div key={`${index}-${line}`} className={line.startsWith('==') ? 'log-line room-title' : 'log-line'}>
+            <div key={`${index}-${line}`} className={line.startsWith('==') ? 'line room-title' : 'line'}>
               {line || '\u00A0'}
             </div>
           ))}
+
+          {shouldShowHelpPrompt && (
+            <>
+              <div className="line spacer" aria-hidden="true">&nbsp;</div>
+              <div className="line warning">The dungeon notices the flailing. Press ? for emergency help.</div>
+            </>
+          )}
+
+          <div className="line spacer" aria-hidden="true">&nbsp;</div>
+          <div className="line dim">--- WORLD MAP -------------------------------------------------------</div>
+          <pre className="map-text">{asciiMap.join('\n')}</pre>
+
+          <div className="line spacer" aria-hidden="true">&nbsp;</div>
+          <div className="line dim">--- VIM BUFFER TRAP ------------------------------------------------</div>
+          <pre className="buffer-text">{state.textBuffer || '/* empty buffer */'}</pre>
         </div>
 
-        <section className="vim-buffer" aria-label="vim buffer">
-          <div className="buffer-title">Vim buffer trap</div>
-          <pre>{state.textBuffer || '/* empty buffer, suspiciously calm */'}</pre>
-          <div className="vim-status-line">
-            <span>{state.mode === 'insert' ? '-- INSERT --' : state.mode === 'command' ? commandPreview || ':' : '-- NORMAL --'}</span>
-            <span>{state.pendingOperator ? `operator: ${state.pendingOperator}` : `last key: ${state.lastKey || 'none'}`}</span>
-          </div>
-        </section>
-
-        <footer className="control-row">
-          <div className="panic-meter" aria-label="panic meter">
-            <div className="panic-fill" style={{ width: `${panicLevel}%` }} />
-          </div>
-          <button type="button" onClick={() => dispatch({ type: 'reset' })}>reset</button>
-        </footer>
+        <div className="terminal-status" aria-label="status line">
+          <span>{statusLine}</span>
+          <span>panic {panicLevel}% | xp {state.xp} | room {state.completedRoomIds.length + 1}</span>
+        </div>
       </section>
-
-      <aside className="cheat-card">
-        <h2>Survival keys</h2>
-        <dl>
-          <dt>i</dt><dd>enter insert mode</dd>
-          <dt>Esc</dt><dd>leave insert mode</dd>
-          <dt>:</dt><dd>open command mode</dd>
-          <dt>:w</dt><dd>save</dd>
-          <dt>:q!</dt><dd>quit without saving</dd>
-          <dt>:wq</dt><dd>save and quit</dd>
-          <dt>:qa!</dt><dd>quit all by force</dd>
-          <dt>dd</dt><dd>delete line</dd>
-          <dt>u</dt><dd>undo</dd>
-        </dl>
-        <p className="hint">Click the terminal panel, then use real keys. This is no longer a polite text box. Progress, allegedly.</p>
-      </aside>
     </main>
   );
 }

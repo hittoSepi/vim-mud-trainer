@@ -1,28 +1,14 @@
-export type VimMode = 'normal' | 'insert' | 'command';
+import { roomOrder, rooms } from './rooms';
+import type { Room, RoomId, VimMode } from './rooms';
 
-type RoomId =
-  | 'wrong-parser-inn'
-  | 'insert-gate'
-  | 'escape-swamp'
-  | 'goblin-line'
-  | 'regret-chamber'
-  | 'save-shrine'
-  | 'exit-portal'
-  | 'ghost-of-qa';
+export type { Room, RoomId, VimMode } from './rooms';
 
-type Room = {
-  id: RoomId;
-  area: string;
-  title: string;
-  startingMode: VimMode;
-  goal: string;
-  description: string[];
-  success?: string;
-};
+export type PanicPhase = 'playing' | 'failed';
 
 export type VimMachineState = {
   roomId: RoomId;
   mode: VimMode;
+  phase: PanicPhase;
   commandBuffer: string;
   textBuffer: string;
   pendingOperator: string | null;
@@ -35,113 +21,9 @@ export type VimMachineState = {
 };
 
 export type VimMachineAction =
-  | { type: 'key'; key: string; printable: boolean }
-  | { type: 'reset' };
-
-export const rooms: Record<RoomId, Room> = {
-  'wrong-parser-inn': {
-    id: 'wrong-parser-inn',
-    area: 'Newbie Pond',
-    title: 'The Wrong Parser Inn',
-    startingMode: 'normal',
-    goal: 'You are trapped in the wrong parser. Escape without saving with :q!.',
-    description: [
-      'You wake up inside a text editor, absolutely convinced you are still in a MUD.',
-      'A retired duck in ceremonial armor watches you type MUD commands into the wrong parser.',
-      'The editor waits. It does not understand look, score, quit, or emotional bargaining.',
-    ],
-  },
-  'insert-gate': {
-    id: 'insert-gate',
-    area: 'Newbie Pond',
-    title: 'The Gate of Insert',
-    startingMode: 'normal',
-    goal: 'Enter insert mode with i.',
-    description: [
-      'A blank scroll floats in the air.',
-      'You cannot write on it from normal mode. This is not user-friendly. This is tradition.',
-    ],
-  },
-  'escape-swamp': {
-    id: 'escape-swamp',
-    area: 'Insert Swamp',
-    title: 'The Swamp of Accidental Text',
-    startingMode: 'insert',
-    goal: 'Leave insert mode with Escape.',
-    description: [
-      'You are now in insert mode.',
-      'Every printable key becomes text. This is power. This is also how disasters become files.',
-    ],
-  },
-  'goblin-line': {
-    id: 'goblin-line',
-    area: 'Goblin Editor Cave',
-    title: 'The Goblin Line Cave',
-    startingMode: 'normal',
-    goal: 'Delete the current line with dd.',
-    description: [
-      'A useless line blocks the tunnel:',
-      'TODO: fix later maybe lol',
-      'The goblin responsible looks proud. Horrible little creature.',
-    ],
-  },
-  'regret-chamber': {
-    id: 'regret-chamber',
-    area: 'Goblin Editor Cave',
-    title: 'The Regret Chamber',
-    startingMode: 'normal',
-    goal: 'Undo the previous action with u.',
-    description: [
-      'You deleted something. Naturally, it was important after all.',
-      'The chamber fills with the smell of consequences.',
-    ],
-  },
-  'save-shrine': {
-    id: 'save-shrine',
-    area: 'Newbie Pond',
-    title: 'The Save Shrine',
-    startingMode: 'normal',
-    goal: 'Open command mode with :, type w, press Enter.',
-    description: [
-      'A shrine demands that you save your work.',
-      'It has seen too many people close terminals like frightened woodland animals.',
-    ],
-  },
-  'exit-portal': {
-    id: 'exit-portal',
-    area: 'Newbie Pond',
-    title: 'The Exit Portal',
-    startingMode: 'normal',
-    goal: 'Open command mode with :, type wq, press Enter.',
-    description: [
-      'A portal opens. It is probably safe. Probably.',
-      'Save and quit to leave the dungeon alive.',
-    ],
-  },
-  'ghost-of-qa': {
-    id: 'ghost-of-qa',
-    area: 'Burning Buffer House',
-    title: 'The Ghost of :qa!',
-    startingMode: 'normal',
-    goal: 'Close every cursed buffer with :qa!.',
-    description: [
-      'Every file you have ever opened is now open again.',
-      'The house is burning. A wall of text crawls toward you from the ceiling.',
-      'The ghost whispers: one command to flee them all.',
-    ],
-  },
-};
-
-const roomOrder: RoomId[] = [
-  'wrong-parser-inn',
-  'insert-gate',
-  'escape-swamp',
-  'goblin-line',
-  'regret-chamber',
-  'save-shrine',
-  'exit-portal',
-  'ghost-of-qa',
-];
+  | { type: 'key'; key: string; printable: boolean; capsLock?: boolean }
+  | { type: 'reset' }
+  | { type: 'start-room'; roomId: RoomId };
 
 function roomIntro(room: Room): string[] {
   return [
@@ -157,6 +39,59 @@ function nextRoomId(currentRoomId: RoomId): RoomId | null {
   return roomOrder[index + 1] ?? null;
 }
 
+function roomHint(roomId: RoomId): string {
+  const hints: Record<RoomId, string> = {
+    'wrong-parser-inn': 'Hint: you are in NORMAL mode. Press :, type q!, then press Enter.',
+    'insert-gate': 'Hint: press lowercase i. Not look, not quit, not a heartfelt apology.',
+    'escape-swamp': 'Hint: you are in INSERT mode. Press Escape to stop feeding text to the swamp.',
+    'goblin-line': 'Hint: press d twice: dd. One d only arms the delete operator, because suspense was apparently necessary.',
+    'regret-chamber': 'Hint: press lowercase u to undo. This is one of the few mercies granted by the dungeon.',
+    'caps-lock-curse': 'Hint: turn Caps Lock off and press lowercase u. The keyboard must stop shouting first.',
+    'save-shrine': 'Hint: press :, type w, then press Enter.',
+    'git-commit-abyss': 'Hint: press i, write a short commit message, press Escape, then use :wq.',
+    'exit-portal': 'Hint: press :, type wq, then press Enter.',
+    'ghost-of-qa': 'Hint: press :, type qa!, then press Enter. Burn the buffers from orbit.',
+  };
+
+  return hints[roomId];
+}
+
+function showEmergencyHelp(state: VimMachineState): VimMachineState {
+  return {
+    ...state,
+    lastKey: '?',
+    pendingOperator: null,
+    log: [
+      ...state.log,
+      '?> emergency help opens reluctantly.',
+      roomHint(state.roomId),
+    ],
+  };
+}
+
+function createRoomStartState(roomId: RoomId, completedRoomIds: RoomId[] = [], xp = 0): VimMachineState {
+  const room = rooms[roomId];
+  return {
+    roomId: room.id,
+    mode: room.startingMode,
+    phase: 'playing',
+    commandBuffer: '',
+    textBuffer: '',
+    pendingOperator: null,
+    panic: 0,
+    xp,
+    completedRoomIds,
+    lastKey: '',
+    gameComplete: false,
+    log: [
+      'Welcome to vim-mud-trainer.',
+      'The point is not to master Vim. The point is to survive the wrong parser.',
+      '',
+      ...roomIntro(room),
+    ],
+  };
+}
+
 function completeRoom(state: VimMachineState, message: string, xp = 10): VimMachineState {
   const completedRoomIds = state.completedRoomIds.includes(state.roomId)
     ? state.completedRoomIds
@@ -168,6 +103,7 @@ function completeRoom(state: VimMachineState, message: string, xp = 10): VimMach
   if (!next) {
     return {
       ...state,
+      phase: 'playing',
       xp: nextXp,
       completedRoomIds,
       commandBuffer: '',
@@ -190,7 +126,9 @@ function completeRoom(state: VimMachineState, message: string, xp = 10): VimMach
     ...state,
     roomId: next,
     mode: nextRoom.startingMode,
+    phase: 'playing',
     commandBuffer: '',
+    textBuffer: next === 'git-commit-abyss' ? '' : state.textBuffer,
     pendingOperator: null,
     panic: Math.max(0, state.panic - 1),
     xp: nextXp,
@@ -205,15 +143,39 @@ function completeRoom(state: VimMachineState, message: string, xp = 10): VimMach
   };
 }
 
+function panicFailure(state: VimMachineState): VimMachineState {
+  return {
+    ...state,
+    phase: 'failed',
+    mode: 'normal',
+    commandBuffer: '',
+    pendingOperator: null,
+    panic: 100,
+    log: [
+      ...state.log,
+      '',
+      'PANIC FAILURE. The room fills with fake terminal output and one smug goblin helpfully types quit for you.',
+      'Press Escape to recover. Press ? for emergency help, because apparently even dungeons need support desks.',
+    ],
+  };
+}
+
+function withPanic(state: VimMachineState, amount: number): VimMachineState {
+  const panic = Math.min(100, state.panic + amount);
+  const next = { ...state, panic };
+  return panic >= 100 ? panicFailure(next) : next;
+}
+
 function wrongParser(state: VimMachineState, key: string, message?: string): VimMachineState {
   const panic = Math.min(100, state.panic + 8);
+  const helpMessage = panic >= 56 ? 'The terminal grudgingly admits: press ? for emergency help.' : '';
   const panicMessage = panic >= 80
     ? 'PANIC CRITICAL. The parser goblin starts chewing the keyboard cable.'
     : panic >= 50
       ? 'Panic rises. The editor smells fear.'
       : 'Panic rises. Wrong parser.';
 
-  return {
+  const nextState = {
     ...state,
     lastKey: key,
     panic,
@@ -223,42 +185,28 @@ function wrongParser(state: VimMachineState, key: string, message?: string): Vim
       `normal> ${key}`,
       message ?? panicFlavor(key),
       panicMessage,
+      ...(helpMessage ? [helpMessage] : []),
     ],
   };
+
+  return panic >= 100 ? panicFailure(nextState) : nextState;
 }
 
 function panicFlavor(key: string): string {
   const known: Record<string, string> = {
+    I: 'Uppercase I is not lowercase i. The curse applauds your keyboard management.',
+    U: 'Uppercase U is not undo here. Case matters, because apparently suffering needed capitalization.',
     l: 'You try to look. The editor inserts no room description. It only judges you.',
     score: 'The editor does not know your level. Rude, but accurate.',
     q: 'A lonely q appears in your soul. It is not :q!.',
     quit: 'You type quit. Vim users become stronger somewhere far away.',
-    '?': 'Help does not arrive. It rarely does.',
   };
 
   return known[key] ?? `The key ${JSON.stringify(key)} is not useful in this mode.`;
 }
 
 export function createInitialMachineState(): VimMachineState {
-  const firstRoom = rooms['wrong-parser-inn'];
-  return {
-    roomId: firstRoom.id,
-    mode: firstRoom.startingMode,
-    commandBuffer: '',
-    textBuffer: '',
-    pendingOperator: null,
-    panic: 0,
-    xp: 0,
-    completedRoomIds: [],
-    lastKey: '',
-    gameComplete: false,
-    log: [
-      'Welcome to vim-mud-trainer.',
-      'The point is not to master Vim. The point is to survive the wrong parser.',
-      '',
-      ...roomIntro(firstRoom),
-    ],
-  };
+  return createRoomStartState('wrong-parser-inn');
 }
 
 export function vimMachineReducer(
@@ -269,11 +217,21 @@ export function vimMachineReducer(
     return createInitialMachineState();
   }
 
+  if (action.type === 'start-room') {
+    return createRoomStartState(action.roomId);
+  }
+
   if (state.gameComplete) {
     return state;
   }
 
-  const key = normalizeKey(action.key);
+  const normalizedKey = normalizeKey(action.key);
+
+  if (state.phase === 'failed') {
+    return handlePanicRecovery(state, normalizedKey);
+  }
+
+  const key = applyCapsLockCurse(state, normalizedKey, action.capsLock ?? false);
 
   if (state.mode === 'insert') {
     return handleInsert(state, key, action.printable);
@@ -286,7 +244,50 @@ export function vimMachineReducer(
   return handleNormal(state, key);
 }
 
+function handlePanicRecovery(state: VimMachineState, key: string): VimMachineState {
+  if (key === '?') {
+    return showEmergencyHelp(state);
+  }
+
+  if (key !== 'Escape') {
+    return {
+      ...state,
+      lastKey: key,
+      log: [...state.log, 'Panic has the keyboard. Press Escape. Press ? if you need the dungeon to explain itself slowly.'],
+    };
+  }
+
+  const room = rooms[state.roomId];
+  return {
+    ...state,
+    phase: 'playing',
+    mode: room.startingMode,
+    commandBuffer: '',
+    pendingOperator: null,
+    panic: 35,
+    lastKey: key,
+    log: [
+      ...state.log,
+      'Escape cuts through the panic wall. You are back in the lesson, slightly singed.',
+      '',
+      ...roomIntro(room),
+    ],
+  };
+}
+
+function applyCapsLockCurse(state: VimMachineState, key: string, capsLock: boolean): string {
+  if (state.roomId !== 'caps-lock-curse' || !capsLock || key.length !== 1) {
+    return key;
+  }
+
+  return key.toUpperCase();
+}
+
 function handleNormal(state: VimMachineState, key: string): VimMachineState {
+  if (key === '?') {
+    return showEmergencyHelp(state);
+  }
+
   if (key === 'Escape') {
     return {
       ...state,
@@ -324,6 +325,10 @@ function handleNormal(state: VimMachineState, key: string): VimMachineState {
   if (key === 'u') {
     if (state.roomId === 'regret-chamber') {
       return completeRoom({ ...state, lastKey: key }, 'Undo succeeds. The universe politely lies about what happened.', 10);
+    }
+
+    if (state.roomId === 'caps-lock-curse') {
+      return completeRoom({ ...state, lastKey: key }, 'Lowercase u breaks the Caps Lock Curse. The keyboard stops shouting at everyone.', 10);
     }
 
     return {
@@ -461,6 +466,28 @@ function runExCommand(state: VimMachineState): VimMachineState {
     );
   }
 
+  if (state.roomId === 'git-commit-abyss' && command === 'wq') {
+    if (state.textBuffer.trim().length < 3) {
+      return withPanic({
+        ...state,
+        mode: 'normal',
+        commandBuffer: '',
+        log: [
+          ...state.log,
+          line,
+          'Git refuses the empty commit message. Even Git has standards, which should worry everyone.',
+          'Write something in INSERT mode first: i, message, Escape, :wq.',
+        ],
+      }, 10);
+    }
+
+    return completeRoom(
+      { ...state, mode: 'normal', commandBuffer: '' },
+      `${line} saves the commit message. Git stops holding the terminal hostage.`,
+      20,
+    );
+  }
+
   if (state.roomId === 'exit-portal' && command === 'wq') {
     return completeRoom(
       { ...state, mode: 'normal', commandBuffer: '' },
@@ -485,18 +512,17 @@ function runExCommand(state: VimMachineState): VimMachineState {
     'qa!': `${line} quits all buffers by force. Heavy artillery. Save it for the burning house.`,
   };
 
-  return {
+  return withPanic({
     ...state,
     mode: 'normal',
     commandBuffer: '',
-    panic: Math.min(100, state.panic + 6),
     log: [
       ...state.log,
       line,
       knownCommandMessages[command] ?? `Unknown Ex command: ${line}. The dungeon writes it down for later mockery.`,
       'Panic rises. Correct command, wrong room, or just pure typographical ambition.',
     ],
-  };
+  }, 6);
 }
 
 function normalizeKey(key: string): string {
