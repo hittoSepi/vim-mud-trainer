@@ -71,6 +71,7 @@ The UI should present two conceptual layers, but visually they should live insid
    - lore and jokes
    - panic consequences
    - room progression
+   - ASCII world map
 
 2. **Vim buffer / editor trap**
    - mode awareness
@@ -80,6 +81,51 @@ The UI should present two conceptual layers, but visually they should live insid
    - panic shown as screen border/tint/text pressure
 
 The player should feel that they are inside a MUD room, but temporarily trapped inside an editor-like interface.
+
+## ASCII world map
+
+A small MUD-style ASCII map may appear inside the terminal screen.
+
+Initial map should be progress-only, not movement-driven:
+
+```text
+MUD MAP
+[x]--[@]--[ ]--[ ]
+[x] The Wrong Parser Inn
+[@] The Gate of Insert
+[ ] The Swamp of Accidental Text
+[ ] The Goblin Line Cave
+```
+
+Legend:
+
+```text
+[@] current room
+[x] cleared room
+[ ] future room
+```
+
+Do not add mouse interaction, hover states, zooming, animated map nodes, minimap widgets, or any other UI crimes. Later, Vim-style movement can become its own lesson, but map movement should not quietly hijack the survival trainer.
+
+## Emergency help
+
+The game may include a small emergency help command for stuck players.
+
+Rules:
+
+- `?` in NORMAL mode shows a room-specific hint.
+- When panic is high, the terminal may reveal that `?` exists.
+- During panic failure, `?` should still work.
+- Help should feel like a reluctant MUD hint, not like modern onboarding.
+- Help must not become a persistent cheat panel.
+
+Example:
+
+```text
+The dungeon notices the flailing. Press ? for emergency help.
+?> emergency help opens reluctantly.
+Hint: press :, type q!, then press Enter.
+```
 
 ## State machine
 
@@ -106,6 +152,7 @@ Listens for a small command vocabulary:
 - `u` triggers undo
 - `d` starts delete intent, with `dd` as delete line
 - `/` enters search/command-like mode
+- `?` shows emergency help
 
 Everything else increases panic.
 
@@ -166,6 +213,7 @@ Required first survival controls:
 ```text
 i       enter insert mode
 Escape  leave insert mode / recover panic failure
+?       emergency room hint
 :       enter command mode
 :w      save
 :q!     quit without saving
@@ -270,5 +318,6 @@ Do not implement:
 - modern dashboard chrome
 - mouse-first controls
 - decorative UI panels
+- mouse-driven maps
 
 The game is about survival and mode awareness. If it becomes a Vim clone, the dungeon has won.
